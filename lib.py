@@ -1,6 +1,9 @@
-#!/usr/bin/env python3
-
 import numpy as np
+
+
+def np_matrix_to_json(np_matrix):
+    return [list(row) for row in np_matrix]
+
 
 def per_landmark_mismatch(src, dst, matrix):
     src_block = np.r_[src.T, np.ones((1, len(src)))]
@@ -121,7 +124,7 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
     #         or np.isclose(np.linalg.det(A), 0))
     d = np.ones((dim,), dtype=np.double)
     if ((not allow_reflection or rank < dim)
-        and np.linalg.det(U) * np.linalg.det(V) < 0):
+            and np.linalg.det(U) * np.linalg.det(V) < 0):
         d[dim - 1] = -1
 
     # Eq. (40) and (43).
