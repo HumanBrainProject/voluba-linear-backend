@@ -15,6 +15,9 @@ HTTP_501_NOT_IMPLEMENTED = 501
 
 class LeastSquaresAPI(Resource):
     def post(self):
+        """
+        Calculates 
+        """
         print(json.dumps(request.json, indent=4, sort_keys=True))
         transformation_type = request.json['transformation_type']
         landmark_pairs = request.json['landmark_pairs']
