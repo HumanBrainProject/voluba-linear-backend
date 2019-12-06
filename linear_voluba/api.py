@@ -6,7 +6,8 @@ import flask_restful
 import numpy as np
 from flask_restful import Resource, request, url_for
 
-from . import lib
+from . import leastsquares
+
 
 # Standard codes
 HTTP_200_OK = 200
@@ -27,38 +28,38 @@ class LeastSquaresAPI(Resource):
                                   for pair in landmark_pairs])
 
         if transformation_type == 'rigid':
-            mat = lib.umeyama(source_points, target_points,
-                              estimate_scale=False,
-                              allow_reflection=False)
+            mat = leastsquares.umeyama(source_points, target_points,
+                                       estimate_scale=False,
+                                       allow_reflection=False)
         elif transformation_type == 'rigid+reflection':
-            mat = lib.umeyama(source_points, target_points,
-                              estimate_scale=False,
-                              allow_reflection=True)
+            mat = leastsquares.umeyama(source_points, target_points,
+                                       estimate_scale=False,
+                                       allow_reflection=True)
         elif transformation_type == 'similarity':
-            mat = lib.umeyama(source_points, target_points,
-                              estimate_scale=True,
-                              allow_reflection=False)
+            mat = leastsquares.umeyama(source_points, target_points,
+                                       estimate_scale=True,
+                                       allow_reflection=False)
         elif transformation_type == 'similarity+reflection':
-            mat = lib.umeyama(source_points, target_points,
-                              estimate_scale=True,
-                              allow_reflection=True)
+            mat = leastsquares.umeyama(source_points, target_points,
+                                       estimate_scale=True,
+                                       allow_reflection=True)
         elif transformation_type == 'affine':
-            mat = lib.affine(source_points, target_points)
+            mat = leastsquares.affine(source_points, target_points)
         else:
             return ({'error': 'unrecognized transformation_type'},
                     HTTP_501_NOT_IMPLEMENTED)
 
         inv_mat = np.linalg.inv(mat)
 
-        mismatches = lib.per_landmark_mismatch(
+        mismatches = leastsquares.per_landmark_mismatch(
             source_points, target_points, mat)
         for pair, mismatch in zip(landmark_pairs, mismatches):
             pair['mismatch'] = mismatch
         rmse = math.sqrt(np.mean(mismatches ** 2))
 
         if np.all(np.isfinite(mat)) and np.all(np.isfinite(inv_mat)):
-            transformation_matrix = lib.np_matrix_to_json(mat)
-            inverse_matrix = lib.np_matrix_to_json(inv_mat)
+            transformation_matrix = leastsquares.np_matrix_to_json(mat)
+            inverse_matrix = leastsquares.np_matrix_to_json(inv_mat)
             return ({'transformation_matrix': transformation_matrix,
                      'inverse_matrix': inverse_matrix,
                      'landmark_pairs': landmark_pairs,
