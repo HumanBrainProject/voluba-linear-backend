@@ -84,6 +84,8 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
         Destination coordinates.
     estimate_scale : bool
         Whether to estimate scaling factor.
+    allow_reflection : bool
+        Whether to allow the resulting matrix to have a negative determinant.
     Returns
     -------
     T : (N + 1, N + 1)
@@ -117,6 +119,11 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
 
     if rank == 0:
         return np.nan * T
+    elif rank < dim:
+        # In this case the problem is not constrained enough to allow us to
+        # decide if a reflection (mirror transform) should be used. We choose
+        # to return the solution with no reflection.
+        allow_reflection = False
     # TODO return error or warning if the solution is ambiguous
     # (rank < dim - 1)
     #
@@ -126,8 +133,7 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
     # assert ((np.linalg.det(U) * np.linalg.det(V)) * np.linalg.det(A) >= 0
     #         or np.isclose(np.linalg.det(A), 0))
     d = np.ones((dim,), dtype=np.double)
-    if ((not allow_reflection or rank < dim)
-            and np.linalg.det(U) * np.linalg.det(V) < 0):
+    if not allow_reflection and np.linalg.det(U) * np.linalg.det(V) < 0:
         d[dim - 1] = -1
 
     # Eq. (40) and (43).
