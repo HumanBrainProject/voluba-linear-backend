@@ -7,7 +7,7 @@ def np_matrix_to_json(np_matrix):
 
 def per_landmark_mismatch(src, dst, matrix):
     src_block = np.r_[src.T, np.ones((1, len(src)))]
-    transformed_src_block = np.dot(matrix, src_block)
+    transformed_src_block = matrix @ src_block
     distances = np.sqrt(np.sum((dst - transformed_src_block[:3].T) ** 2,
                                axis=1))
     return distances
@@ -37,7 +37,7 @@ def affine_gergely(src, dst):
     hsrc = np.c_[src, np.ones(len(src))]
     hdst = np.c_[dst, np.ones(len(dst))]
     # TODO handle LinAlgError (non-invertible matrix)
-    mat = np.dot(np.dot(hdst.T, hdst), np.linalg.inv(np.dot(hsrc.T, hdst)))
+    mat = hdst.T @ hdst @ np.linalg.inv(hsrc.T @ hdst)
     assert np.allclose(mat[3], [0, 0, 0, 1])
     mat[3, :] = [0, 0, 0, 1]
     return mat
@@ -92,7 +92,7 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
     References
     ----------
     .. [1] "Least-squares estimation of transformation parameters between two
-            point patterns", Shinji Umeyama, PAMI 1991, DOI: 10.1109/34.88573
+            point patterns", Shinji Umeyama, PAMI 1991, :DOI:`10.1109/34.88573`
     """
 
     num = src.shape[0]
@@ -107,7 +107,7 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
     dst_demean = dst - dst_mean
 
     # Eq. (38).
-    A = np.dot(dst_demean.T, src_demean) / num
+    A = dst_demean.T @ src_demean / num
 
     T = np.eye(dim + 1, dtype=np.double)
 
@@ -131,15 +131,15 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
         d[dim - 1] = -1
 
     # Eq. (40) and (43).
-    T[:dim, :dim] = np.dot(U, np.dot(np.diag(d), V))
+    T[:dim, :dim] = U @ np.diag(d) @ V
 
     if estimate_scale:
         # Eq. (41) and (42).
-        scale = 1.0 / src_demean.var(axis=0).sum() * np.dot(S, d)
+        scale = 1.0 / src_demean.var(axis=0).sum() * (S @ d)
     else:
         scale = 1.0
 
-    T[:dim, dim] = dst_mean - scale * np.dot(T[:dim, :dim], src_mean.T)
+    T[:dim, dim] = dst_mean - scale * (T[:dim, :dim] @ src_mean.T)
     T[:dim, :dim] *= scale
 
     return T
