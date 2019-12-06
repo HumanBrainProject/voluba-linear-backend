@@ -6,7 +6,7 @@ import flask_restful
 import numpy as np
 from flask_restful import Resource, request, url_for
 
-from spatial_alignment_backend import lib
+from . import lib
 
 # Standard codes
 HTTP_200_OK = 200
@@ -16,7 +16,7 @@ HTTP_501_NOT_IMPLEMENTED = 501
 class LeastSquaresAPI(Resource):
     def post(self):
         """
-        Calculates 
+        Calculates
         """
         print(json.dumps(request.json, indent=4, sort_keys=True))
         transformation_type = request.json['transformation_type']

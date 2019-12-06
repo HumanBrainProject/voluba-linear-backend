@@ -8,7 +8,8 @@ def np_matrix_to_json(np_matrix):
 def per_landmark_mismatch(src, dst, matrix):
     src_block = np.r_[src.T, np.ones((1, len(src)))]
     transformed_src_block = np.dot(matrix, src_block)
-    distances = np.sqrt(np.sum((dst - transformed_src_block[:3].T) ** 2, axis=1))
+    distances = np.sqrt(np.sum((dst - transformed_src_block[:3].T) ** 2,
+                               axis=1))
     return distances
 
 
@@ -116,7 +117,9 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
 
     if rank == 0:
         return np.nan * T
-    # TODO return error or warning if the solution is ambiguous (rank < dim - 1)
+    # TODO return error or warning if the solution is ambiguous
+    # (rank < dim - 1)
+    #
     # TODO handle ill-conditioned matrix
 
     # Eq. (39).
