@@ -1,10 +1,9 @@
 import json
 import math
-import pprint
 
 import flask_restful
 import numpy as np
-from flask_restful import Resource, request, url_for
+from flask_restful import Resource, request
 
 from . import leastsquares
 
@@ -70,21 +69,6 @@ class LeastSquaresAPI(Resource):
                              '(singular matrix?)'}, HTTP_200_OK
 
 
-class CreateAlignmentTaskAPI(Resource):
-    def post(self):
-        pprint.pprint(request.json)
-        return {'alignment-task': url_for('alignment-task', id=3)}, 201
-
-
-class AlignmentTaskAPI(Resource):
-    def get(self):
-        pprint.pprint(request.json)
-        return {'status': ''}, 201
-
-
 def register_api(app, *args, **kwargs):
     api = flask_restful.Api(app, *args, **kwargs)
     api.add_resource(LeastSquaresAPI, '/least-squares')
-    api.add_resource(CreateAlignmentTaskAPI, '/alignment-task')
-    api.add_resource(AlignmentTaskAPI, '/alignment-task/<int:id>',
-                     endpoint='alignment-task')
