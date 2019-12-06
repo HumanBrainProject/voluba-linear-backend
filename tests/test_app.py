@@ -1,10 +1,7 @@
 # Copyright 2019 CEA
 # Author: Yann Leprince <yann.leprince@cea.fr>
 
-import pytest
 
-
-@pytest.mark.skip('Refactoring in progress')
 def test_config():
     from linear_voluba import create_app
     assert not create_app().testing

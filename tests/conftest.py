@@ -8,11 +8,9 @@ import linear_voluba
 
 @pytest.fixture
 def app():
-    # FIXME: refactoring in progress
-    # app = linear_voluba.create_app({
-    #     'TESTING': True,
-    # })
-    app = linear_voluba.app
+    app = linear_voluba.create_app({
+        'TESTING': True,
+    })
     return app
 
 
