@@ -29,5 +29,5 @@ USER user
 # 4. Configure the server #
 ###########################
 ENV FLASK_APP linear_voluba
-EXPOSE 5000
-CMD gunicorn --access-logfile=- --preload 'linear_voluba.wsgi:application' --bind=:5000 --worker-class=gevent
+EXPOSE 8080
+CMD gunicorn --access-logfile=- --preload 'linear_voluba.wsgi:application' --bind=:8080 --worker-class=gevent
