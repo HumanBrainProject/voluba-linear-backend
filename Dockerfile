@@ -1,0 +1,33 @@
+FROM python:3
+
+###############################
+# 1. Install packages as root #
+###############################
+
+RUN python3 -m pip install --no-cache-dir gunicorn[gevent]
+
+COPY . /source
+RUN python3 -m pip install --no-cache-dir /source
+
+
+######################
+# 2. Configure paths #
+######################
+ENV INSTANCE_PATH /instance
+VOLUME ${INSTANCE_PATH}
+
+
+###########################################################
+# 3. Create an unprivileged user that will run the server #
+###########################################################
+RUN useradd --create-home user
+RUN mkdir -p ${INSTANCE_PATH} && chown user:user ${INSTANCE_PATH}
+USER user
+
+
+###########################
+# 4. Configure the server #
+###########################
+ENV FLASK_APP linear_voluba
+EXPOSE 5000
+CMD gunicorn --access-logfile=- --preload 'linear_voluba.wsgi:application' --bind=:5000 --worker-class=gevent
