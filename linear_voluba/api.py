@@ -1,12 +1,15 @@
-import json
+import logging
 import math
 
 import flask_restful
 import numpy as np
+from flask import json
 from flask_restful import Resource, request
 
 from . import leastsquares
 
+
+logger = logging.getLogger(__name__)
 
 # Standard codes
 HTTP_200_OK = 200
@@ -16,9 +19,11 @@ HTTP_501_NOT_IMPLEMENTED = 501
 class LeastSquaresAPI(Resource):
     def post(self):
         """
-        Calculates
+        Calculate an affine transformation matrix from a set of landmarks.
         """
-        print(json.dumps(request.json, indent=4, sort_keys=True))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Received request on /api/least-squares: %s',
+                         json.dumps(request.json))
         transformation_type = request.json['transformation_type']
         landmark_pairs = request.json['landmark_pairs']
         source_points = np.array([pair['source_point']
