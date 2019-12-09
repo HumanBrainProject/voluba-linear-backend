@@ -174,14 +174,24 @@ TRANSFORMED_COPLANAR_POINTS = apply_transform_to_points(
 
 @pytest.mark.skip('FIXME: the modified Umeyama method does not detect '
                   'underconstrained cases yet')
-@pytest.mark.parametrize('estimate_scale', [False, True])
-@pytest.mark.parametrize('allow_reflection', [False, True])
-@pytest.mark.parametrize('point_count', [3, 4])
+@pytest.mark.parametrize(
+    ['estimate_scale', 'allow_reflection', 'point_count'],
+    [
+        (False, False, 2),
+        (False, False, 3),
+        (True, False, 2),
+        (True, False, 3),
+        (False, True, 3),
+        (False, True, 4),
+        (True, True, 3),
+        (True, True, 4),
+    ]
+)
 def test_underconstrained_umeyama(estimate_scale,
                                   allow_reflection,
                                   point_count):
-    leastsquares.umeyama(COPLANAR_POINTS,
-                         TRANSFORMED_COPLANAR_POINTS,
+    leastsquares.umeyama(COPLANAR_POINTS[:point_count],
+                         TRANSFORMED_COPLANAR_POINTS[:point_count],
                          estimate_scale=estimate_scale,
                          allow_reflection=allow_reflection)
 
@@ -189,12 +199,12 @@ def test_underconstrained_umeyama(estimate_scale,
                   'cases yet')
 @pytest.mark.parametrize('point_count', [3, 4])
 def test_underconstrained_affine(point_count):
-    leastsquares.affine(COPLANAR_POINTS,
-                        TRANSFORMED_COPLANAR_POINTS)
+    leastsquares.affine(COPLANAR_POINTS[:point_count],
+                        TRANSFORMED_COPLANAR_POINTS[:point_count])
 
 
 @pytest.mark.parametrize('point_count', [3, 4])
 def test_underconstrained_affine_in_source_space(point_count):
     with pytest.raises(numpy.linalg.LinAlgError):
-        leastsquares.affine_gergely(COPLANAR_POINTS,
-                                    TRANSFORMED_COPLANAR_POINTS)
+        leastsquares.affine_gergely(COPLANAR_POINTS[:point_count],
+                                    TRANSFORMED_COPLANAR_POINTS[:point_count])
