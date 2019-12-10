@@ -103,6 +103,16 @@ def test_least_squares_invalid_requests(client):
     })
     assert response.status_code == 400
 
+    response = client.post('/api/least-squares', json={
+        'transformation_type': 'invalid',
+    })
+    assert response.status_code == 400
+
+    response = client.post('/api/least-squares', json={
+        'landmark_pairs': TEST_LANDMARK_PAIRS,
+    })
+    assert response.status_code == 400
+
 
 def test_least_squares_other_invalid_requests(client):
     response = client.post('/api/least-squares', json={})

@@ -33,6 +33,8 @@ class LandmarkPairSchema(Schema):
 
 
 class LeastSquaresRequestSchema(Schema):
+    class Meta:
+        unknown = marshmallow.EXCLUDE
     transformation_type = fields.String(
         validate=OneOf([
             'rigid',
@@ -55,10 +57,10 @@ class LeastSquaresAPI(Resource):
         Calculate an affine transformation matrix from a set of landmarks.
         """
         schema = LeastSquaresRequestSchema()
-        params = schema.load(request.json, unknown=marshmallow.EXCLUDE)
+        params = schema.load(request.json)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Received request on /api/least-squares: %s',
-                         json.dumps(request.json))
+                         json.dumps(params))
         transformation_type = params['transformation_type']
         landmark_pairs = params['landmark_pairs']
         source_points = np.array([pair['source_point']
