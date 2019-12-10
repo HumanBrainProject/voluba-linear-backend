@@ -45,6 +45,7 @@ setuptools.setup(
         "Flask ~= 1.0",
         "Flask-Cors",
         "Flask-RESTful",
+        "marshmallow ~= 3.0",
         "numpy",
     ],
     python_requires="~= 3.5",

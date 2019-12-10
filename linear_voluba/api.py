@@ -2,9 +2,12 @@ import logging
 import math
 
 import flask
-from flask import json
+from flask import json, jsonify
 import flask_restful
 from flask_restful import Resource, request
+import marshmallow
+from marshmallow import Schema, fields
+from marshmallow.validate import Length, OneOf
 import numpy as np
 
 from . import leastsquares
@@ -20,16 +23,44 @@ HTTP_200_OK = 200
 HTTP_501_NOT_IMPLEMENTED = 501
 
 
+class LandmarkPairSchema(Schema):
+    source_point = fields.List(fields.Float, validate=Length(equal=3),
+                               required=True)
+    target_point = fields.List(fields.Float, validate=Length(equal=3),
+                               required=True)
+    active = fields.Boolean(default=True)
+    name = fields.String()
+
+
+class LeastSquaresRequestSchema(Schema):
+    transformation_type = fields.String(
+        validate=OneOf([
+            'rigid',
+            'rigid+reflection',
+            'similarity',
+            'similarity+reflection',
+            'affine',
+        ]),
+        required=True,
+    )
+    landmark_pairs = fields.Nested(
+        LandmarkPairSchema,
+        many=True, unknown=marshmallow.EXCLUDE, required=True,
+    )
+
+
 class LeastSquaresAPI(Resource):
     def post(self):
         """
         Calculate an affine transformation matrix from a set of landmarks.
         """
+        schema = LeastSquaresRequestSchema()
+        params = schema.load(request.json, unknown=marshmallow.EXCLUDE)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Received request on /api/least-squares: %s',
                          json.dumps(request.json))
-        transformation_type = request.json['transformation_type']
-        landmark_pairs = request.json['landmark_pairs']
+        transformation_type = params['transformation_type']
+        landmark_pairs = params['landmark_pairs']
         source_points = np.array([pair['source_point']
                                   for pair in landmark_pairs])
         target_points = np.array([pair['target_point']
@@ -53,9 +84,6 @@ class LeastSquaresAPI(Resource):
                                        allow_reflection=True)
         elif transformation_type == 'affine':
             mat = leastsquares.affine(source_points, target_points)
-        else:
-            return ({'error': 'unrecognized transformation_type'},
-                    HTTP_501_NOT_IMPLEMENTED)
 
         inv_mat = np.linalg.inv(mat)
 
@@ -79,3 +107,8 @@ class LeastSquaresAPI(Resource):
 
 
 api.add_resource(LeastSquaresAPI, '/least-squares')
+
+
+@bp.errorhandler(marshmallow.exceptions.ValidationError)
+def handle_validation_error(exc):
+    return jsonify({'errors': exc.messages}), 400

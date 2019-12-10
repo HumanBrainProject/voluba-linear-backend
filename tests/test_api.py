@@ -101,11 +101,9 @@ def test_least_squares_invalid_requests(client):
         'landmark_pairs': TEST_LANDMARK_PAIRS,
         'transformation_type': 'invalid',
     })
-    assert response.status_code == 501
+    assert response.status_code == 400
 
 
-@pytest.mark.skip('FIXME: /api/least-squares does not handle these invalid '
-                  'requests')
 def test_least_squares_other_invalid_requests(client):
     response = client.post('/api/least-squares', json={})
     assert response.status_code == 400
