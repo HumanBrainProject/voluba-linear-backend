@@ -11,3 +11,8 @@ def test_config():
 def test_health(client):
     response = client.get('/health')
     assert response.status_code == 200
+
+
+def test_wsgi_app():
+    from linear_voluba.wsgi import application
+    assert application is not None
