@@ -117,3 +117,49 @@ def test_least_squares_invalid_requests(client):
 def test_least_squares_other_invalid_requests(client):
     response = client.post('/api/least-squares', json={})
     assert response.status_code == 400
+
+
+def test_transformation_matrix_field():
+    import marshmallow
+    from marshmallow.exceptions import ValidationError
+    from linear_voluba.api import TransformationMatrixField
+
+    class TestSchema(marshmallow.Schema):
+        val = TransformationMatrixField()
+
+    schema = TestSchema()
+    mat = schema.load({'val': [[1, 0, 0, 0],
+                               [0, 1, 0, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1]]})
+    assert isinstance(mat['val'], numpy.ndarray)
+    assert numpy.array_equal(mat['val'], numpy.eye(4))
+    mat = schema.load({'val': [[1, 0, 0, 0],
+                               [0, 1, 0, 0],
+                               [0, 0, 1, 0]]})
+    assert isinstance(mat['val'], numpy.ndarray)
+    assert numpy.array_equal(mat['val'], numpy.eye(4))
+
+    serialized = schema.dump({'val': numpy.eye(4)})
+    assert serialized == {
+        'val': [[1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]],
+    }
+
+    with pytest.raises(ValidationError):
+        schema.load({'val': 'string'})
+    with pytest.raises(ValidationError):
+        schema.load({'val': {'some': 'dict'}})
+    with pytest.raises(ValidationError):
+        schema.load({'val': None})
+    with pytest.raises(ValidationError):
+        schema.load({'val': []})
+    with pytest.raises(ValidationError):
+        schema.load({'val': [[1, 2], [3]]})
+    with pytest.raises(ValidationError):
+        schema.load({'val': [[1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [0, 0, 1, 0],
+                             [1, 2, 3, 4]]})

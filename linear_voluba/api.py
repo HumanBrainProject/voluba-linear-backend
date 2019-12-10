@@ -7,7 +7,8 @@ import flask_restful
 from flask_restful import Resource, request
 import marshmallow
 from marshmallow import Schema, fields
-from marshmallow.validate import Length, OneOf
+from marshmallow.validate import Length, OneOf, Range
+import numpy
 import numpy as np
 
 from . import leastsquares
@@ -32,6 +33,10 @@ class LandmarkPairSchema(Schema):
     name = fields.String()
 
 
+class LandmarkPairResponseSchema(LandmarkPairSchema):
+    mismatch = fields.Float(validate=Range(min_inclusive=0.0))
+
+
 class LeastSquaresRequestSchema(Schema):
     class Meta:
         unknown = marshmallow.EXCLUDE
@@ -51,6 +56,52 @@ class LeastSquaresRequestSchema(Schema):
     )
 
 
+class TransformationMatrixField(marshmallow.fields.Field):
+    """Field type for a 3D affine matrix (4×4 in homogeneous coordinates)."""
+
+    default_error_messages = {
+        'not_an_array': 'Not convertible to a matrix.',
+        'invalid_shape': 'Invalid shape (must be 3×4 or 4×4).',
+        'invalid_last_row': 'Invalid last row (must be [0, 0, 0, 1]).',
+    }
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        return leastsquares.np_matrix_to_json(value)
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        try:
+            array = numpy.asarray(value)
+        except Exception as exc:
+            raise self.make_error('not_an_array') from exc
+        if array.shape not in [(3, 4), (4, 4)]:
+            raise self.make_error('invalid_shape')
+        if array.shape[0] == 3:
+            array = numpy.r_[array, [[0, 0, 0, 1]]]
+        elif not numpy.array_equal(array[3], [0, 0, 0, 1]):
+            raise self.make_error('invalid_last_row')
+        return array
+
+
+class LeastSquaresResponseSchema(Schema):
+    transformation_matrix = fields.List(
+        fields.List(
+            fields.Float,
+            validate=Length(equal=4)
+        ), validate=Length(min=3, max=4), required=True)
+    inverse_matrix = fields.List(
+        fields.List(
+            fields.Float,
+            validate=Length(equal=4)
+        ), validate=Length(min=3, max=4), required=True)
+    landmark_pairs = fields.Nested(
+        LandmarkPairResponseSchema,
+        many=True, unknown=marshmallow.RAISE, required=True,
+    )
+    RMSE = fields.Float(validate=Range(min_inclusive=0.0))
+
+
 class LeastSquaresAPI(Resource):
     def post(self):
         """
@@ -64,9 +115,11 @@ class LeastSquaresAPI(Resource):
         transformation_type = params['transformation_type']
         landmark_pairs = params['landmark_pairs']
         source_points = np.array([pair['source_point']
-                                  for pair in landmark_pairs])
+                                  for pair in landmark_pairs
+                                  if pair['active']])
         target_points = np.array([pair['target_point']
-                                  for pair in landmark_pairs])
+                                  for pair in landmark_pairs
+                                  if pair['active']])
 
         if transformation_type == 'rigid':
             mat = leastsquares.umeyama(source_points, target_points,
@@ -96,13 +149,15 @@ class LeastSquaresAPI(Resource):
         rmse = math.sqrt(np.mean(mismatches ** 2))
 
         if np.all(np.isfinite(mat)) and np.all(np.isfinite(inv_mat)):
-            transformation_matrix = leastsquares.np_matrix_to_json(mat)
-            inverse_matrix = leastsquares.np_matrix_to_json(inv_mat)
-            return ({'transformation_matrix': transformation_matrix,
-                     'inverse_matrix': inverse_matrix,
-                     'landmark_pairs': landmark_pairs,
-                     'RMSE': rmse},
-                    HTTP_200_OK)
+            return (
+                LeastSquaresResponseSchema().dump({
+                    'transformation_matrix': mat,
+                    'inverse_matrix': inv_mat,
+                    'landmark_pairs': landmark_pairs,
+                    'RMSE': rmse,
+                }),
+                HTTP_200_OK,
+            )
         else:
             return {'error': 'cannot compute least-squares solution '
                              '(singular matrix?)'}, HTTP_200_OK
