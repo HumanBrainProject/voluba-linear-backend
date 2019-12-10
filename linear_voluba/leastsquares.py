@@ -26,7 +26,7 @@ def affine(src, dst):
         src_mat[3 * src_idx + 2][8:11] = src_vec
         src_mat[3 * src_idx + 2][11] = 1
 
-    flat_mat, _, _, _ = np.linalg.lstsq(src_mat, flat_dst)
+    flat_mat, _, _, _ = np.linalg.lstsq(src_mat, flat_dst, rcond=None)
     mat = flat_mat.reshape((3, 4), order="C")
     mat = np.concatenate((mat, [[0, 0, 0, 1]]), axis=0)
     return mat
