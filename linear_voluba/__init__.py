@@ -107,9 +107,8 @@ def create_app(test_config=None):
         import flask_cors
         flask_cors.CORS(app, origins=app.config['CORS_ORIGINS'])
 
-    # TODO: switch to using a blueprint?
-    from .api import register_api
-    register_api(app, prefix='/api')
+    from . import api
+    app.register_blueprint(api.bp)
 
     if app.config.get('PROXY_FIX'):
         from werkzeug.middleware.proxy_fix import ProxyFix

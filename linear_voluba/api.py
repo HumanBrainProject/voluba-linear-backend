@@ -1,15 +1,19 @@
 import logging
 import math
 
-import flask_restful
-import numpy as np
+import flask
 from flask import json
+import flask_restful
 from flask_restful import Resource, request
+import numpy as np
 
 from . import leastsquares
 
 
 logger = logging.getLogger(__name__)
+
+bp = flask.Blueprint('api', __name__, url_prefix='/api')
+api = flask_restful.Api(bp)
 
 # Standard codes
 HTTP_200_OK = 200
@@ -74,6 +78,4 @@ class LeastSquaresAPI(Resource):
                              '(singular matrix?)'}, HTTP_200_OK
 
 
-def register_api(app, *args, **kwargs):
-    api = flask_restful.Api(app, *args, **kwargs)
-    api.add_resource(LeastSquaresAPI, '/least-squares')
+api.add_resource(LeastSquaresAPI, '/least-squares')
