@@ -4,14 +4,11 @@ An HTTP backend for estimating linear spatial transformations from a list of poi
 Public deployments
 ==================
 
-Coming soon
-
 A production deployment (following the ``master`` branch) is deployed on https://voluba-linear-backend.apps.hbp.eu. |uptime-prod|
 
 The ``dev`` branch is deployed on https://voluba-linear-backend.apps-dev.hbp.eu. |uptime-dev|
 
-..
-   The public deployments are managed by OpenShift clusters, the relevant configuration is described in `<openshift-deployment/>`_. TODO: document the deployment config
+The public deployments are managed by OpenShift clusters, the relevant configuration is described in `<openshift-deployment/>`_.
 
 
 Documentation
