@@ -29,10 +29,8 @@ class LandmarkPairSchema(Schema):
                                required=True)
     active = fields.Boolean(default=True)
     name = fields.String()
-
-
-class LandmarkPairResponseSchema(LandmarkPairSchema):
-    mismatch = fields.Float(validate=Range(min_inclusive=0.0))
+    mismatch = fields.Float(validate=Range(min_inclusive=0.0),
+                            dump_only=True, required=True)
 
 
 class LeastSquaresRequestSchema(Schema):
@@ -86,10 +84,11 @@ class LeastSquaresResponseSchema(Schema):
     transformation_matrix = TransformationMatrixField(required=True)
     inverse_matrix = TransformationMatrixField(required=True)
     landmark_pairs = fields.Nested(
-        LandmarkPairResponseSchema,
+        LandmarkPairSchema,
         many=True, unknown=marshmallow.RAISE, required=True,
     )
-    RMSE = fields.Float(validate=Range(min_inclusive=0.0))
+    RMSE = fields.Float(validate=Range(min_inclusive=0.0),
+                        required=True)
 
 
 class LeastSquaresAPI(flask.views.MethodView):
@@ -149,6 +148,7 @@ class LeastSquaresAPI(flask.views.MethodView):
                 HTTP_200_OK,
             )
         else:
+            # FIXME: this should probably not return a 200 code
             return {'error': 'cannot compute least-squares solution '
                              '(singular matrix?)'}, HTTP_200_OK
 
