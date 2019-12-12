@@ -16,3 +16,9 @@ def test_health(client):
 def test_wsgi_app():
     from linear_voluba.wsgi import application
     assert application is not None
+
+
+def test_openapi_spec(app, client):
+    response = client.get('/openapi.json')
+    assert response.status_code == 200
+    assert response.json['openapi'] == app.config['OPENAPI_VERSION']

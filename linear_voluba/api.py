@@ -4,6 +4,7 @@ import math
 import flask
 import flask.views
 from flask import json, jsonify, request
+import flask_smorest
 import marshmallow
 from marshmallow import Schema, fields
 from marshmallow.validate import Length, OneOf, Range
@@ -15,7 +16,10 @@ from . import leastsquares
 
 logger = logging.getLogger(__name__)
 
-bp = flask.Blueprint('api', __name__, url_prefix='/api')
+bp = flask_smorest.Blueprint(
+    'api', __name__, url_prefix='/api',
+    description='Legacy API of the Voluba linear backend',
+)
 
 # Standard codes
 HTTP_200_OK = 200
@@ -32,7 +36,8 @@ class LandmarkPairSchema(Schema):
 
 
 class LandmarkPairResponseSchema(LandmarkPairSchema):
-    mismatch = fields.Float(validate=Range(min_inclusive=0.0))
+    mismatch = fields.Float(validate=Range(min_inclusive=0.0),
+                            required=True)
 
 
 class LeastSquaresRequestSchema(Schema):
@@ -63,6 +68,25 @@ class TransformationMatrixField(marshmallow.fields.Field):
         'invalid_last_row': 'Invalid last row (must be [0, 0, 0, 1]).',
     }
 
+    def __init__(self, **kwargs):
+        # Add metadata fields for apispec to generate an accurate OpenAPI spec
+        new_kwargs = {
+            'type': 'array',
+            'minItems': 3,
+            'maxItems': 4,
+            'items': {
+                "minItems": 4,
+                "maxItems": 4,
+                "type": "array",
+                "items": {
+                    "format": "float",
+                    "type": "number"
+                },
+            },
+        }
+        new_kwargs.update(kwargs)
+        super().__init__(**new_kwargs)
+
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
@@ -83,16 +107,8 @@ class TransformationMatrixField(marshmallow.fields.Field):
 
 
 class LeastSquaresResponseSchema(Schema):
-    transformation_matrix = fields.List(
-        fields.List(
-            fields.Float,
-            validate=Length(equal=4)
-        ), validate=Length(min=3, max=4), required=True)
-    inverse_matrix = fields.List(
-        fields.List(
-            fields.Float,
-            validate=Length(equal=4)
-        ), validate=Length(min=3, max=4), required=True)
+    transformation_matrix = TransformationMatrixField(required=True)
+    inverse_matrix = TransformationMatrixField(required=True)
     landmark_pairs = fields.Nested(
         LandmarkPairResponseSchema,
         many=True, unknown=marshmallow.RAISE, required=True,
@@ -100,18 +116,19 @@ class LeastSquaresResponseSchema(Schema):
     RMSE = fields.Float(validate=Range(min_inclusive=0.0))
 
 
+@bp.route('/least-squares')
 class LeastSquaresAPI(flask.views.MethodView):
-    def post(self):
+    @bp.arguments(LeastSquaresRequestSchema, location='json')
+    @bp.response(LeastSquaresResponseSchema)
+    def post(self, args):
         """
         Calculate an affine transformation matrix from a set of landmarks.
         """
-        schema = LeastSquaresRequestSchema()
-        params = schema.load(request.json)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Received request on /api/least-squares: %s',
-                         json.dumps(params))
-        transformation_type = params['transformation_type']
-        landmark_pairs = params['landmark_pairs']
+                         json.dumps(request.json))
+        transformation_type = args['transformation_type']
+        landmark_pairs = args['landmark_pairs']
         source_points = np.array([pair['source_point']
                                   for pair in landmark_pairs
                                   if pair['active']])
@@ -147,22 +164,15 @@ class LeastSquaresAPI(flask.views.MethodView):
         rmse = math.sqrt(np.mean(mismatches ** 2))
 
         if np.all(np.isfinite(mat)) and np.all(np.isfinite(inv_mat)):
-            return (
-                LeastSquaresResponseSchema().dump({
-                    'transformation_matrix': mat,
-                    'inverse_matrix': inv_mat,
-                    'landmark_pairs': landmark_pairs,
-                    'RMSE': rmse,
-                }),
-                HTTP_200_OK,
-            )
+            return {
+                'transformation_matrix': mat,
+                'inverse_matrix': inv_mat,
+                'landmark_pairs': landmark_pairs,
+                'RMSE': rmse,
+            }
         else:
             return {'error': 'cannot compute least-squares solution '
                              '(singular matrix?)'}, HTTP_200_OK
-
-
-bp.add_url_rule('/least-squares',
-                view_func=LeastSquaresAPI.as_view('least-squares'))
 
 
 @bp.errorhandler(marshmallow.exceptions.ValidationError)

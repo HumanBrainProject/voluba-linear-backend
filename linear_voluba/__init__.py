@@ -7,6 +7,7 @@ import os
 import re
 
 import flask
+import flask_smorest
 
 
 # __version__ and SOURCE_URL are used by setup.py and docs/conf.py (they are
@@ -24,6 +25,9 @@ class DefaultConfig:
     # arguments, see
     # https://werkzeug.palletsprojects.com/en/0.15.x/middleware/proxy_fix/
     PROXY_FIX = None
+    # For flask-smorest to generate an OpenAPI spec
+    OPENAPI_VERSION = '3.0.2'
+    OPENAPI_URL_PREFIX = '/'
 
 
 # This function has a magic name which is recognized by flask as a factory for
@@ -107,8 +111,10 @@ def create_app(test_config=None):
         import flask_cors
         flask_cors.CORS(app, origins=app.config['CORS_ORIGINS'])
 
+    smorest_api = flask_smorest.Api(app)
+
     from . import api
-    app.register_blueprint(api.bp)
+    smorest_api.register_blueprint(api.bp)
 
     if app.config.get('PROXY_FIX'):
         from werkzeug.middleware.proxy_fix import ProxyFix
