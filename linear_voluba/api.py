@@ -83,16 +83,8 @@ class TransformationMatrixField(marshmallow.fields.Field):
 
 
 class LeastSquaresResponseSchema(Schema):
-    transformation_matrix = fields.List(
-        fields.List(
-            fields.Float,
-            validate=Length(equal=4)
-        ), validate=Length(min=3, max=4), required=True)
-    inverse_matrix = fields.List(
-        fields.List(
-            fields.Float,
-            validate=Length(equal=4)
-        ), validate=Length(min=3, max=4), required=True)
+    transformation_matrix = TransformationMatrixField(required=True)
+    inverse_matrix = TransformationMatrixField(required=True)
     landmark_pairs = fields.Nested(
         LandmarkPairResponseSchema,
         many=True, unknown=marshmallow.RAISE, required=True,
