@@ -2,9 +2,8 @@ import logging
 import math
 
 import flask
-from flask import json, jsonify
-import flask_restful
-from flask_restful import Resource, request
+import flask.views
+from flask import json, jsonify, request
 import marshmallow
 from marshmallow import Schema, fields
 from marshmallow.validate import Length, OneOf, Range
@@ -17,7 +16,6 @@ from . import leastsquares
 logger = logging.getLogger(__name__)
 
 bp = flask.Blueprint('api', __name__, url_prefix='/api')
-api = flask_restful.Api(bp)
 
 # Standard codes
 HTTP_200_OK = 200
@@ -102,7 +100,7 @@ class LeastSquaresResponseSchema(Schema):
     RMSE = fields.Float(validate=Range(min_inclusive=0.0))
 
 
-class LeastSquaresAPI(Resource):
+class LeastSquaresAPI(flask.views.MethodView):
     def post(self):
         """
         Calculate an affine transformation matrix from a set of landmarks.
@@ -163,7 +161,8 @@ class LeastSquaresAPI(Resource):
                              '(singular matrix?)'}, HTTP_200_OK
 
 
-api.add_resource(LeastSquaresAPI, '/least-squares')
+bp.add_url_rule('/least-squares',
+                view_func=LeastSquaresAPI.as_view('least-squares'))
 
 
 @bp.errorhandler(marshmallow.exceptions.ValidationError)
