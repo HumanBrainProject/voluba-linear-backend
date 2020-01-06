@@ -1,3 +1,8 @@
+# Copyright 2017–2019 Forschungszentrum Jülich GmbH
+# Copyright 2019–2020 CEA
+#
+# Author: Yann Leprince <yann.leprince@cea.fr>
+
 import logging
 import math
 

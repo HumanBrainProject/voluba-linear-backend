@@ -1,8 +1,7 @@
-# Copyright 2019 CEA
+# Copyright 2019–2020 CEA
 # Copyright 2017 Forschungszentrum Jülich GmbH
 #
 # Author: Yann Leprince <yann.leprince@cea.fr>
-# Author: Yann Leprince <y.leprince@fz-juelich.de>
 
 import json
 import numpy

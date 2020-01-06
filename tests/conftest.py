@@ -1,4 +1,5 @@
-# Copyright 2019 CEA
+# Copyright 2019–2020 CEA
+#
 # Author: Yann Leprince <yann.leprince@cea.fr>
 
 import pytest
