@@ -73,6 +73,36 @@ def test_least_squares_full_request(client):
         assert isinstance(returned_pair['mismatch'], float)
 
 
+def test_least_squares_minimal_request(client):
+    response = client.post('/api/least-squares', json={
+        'landmark_pairs': [
+            {
+                'source_point': pair['source_point'],
+                'target_point': pair['target_point'],
+            }
+            for pair in TEST_LANDMARK_PAIRS[:3]
+        ],
+        'transformation_type': 'similarity',
+    })
+    assert response.status_code == 200
+
+    assert 'transformation_matrix' in response.json
+    assert 'inverse_matrix' in response.json
+    assert 'RMSE' in response.json
+    assert 'landmark_pairs' in response.json
+    assert len(response.json['landmark_pairs']) == 3
+    for returned_pair, orig_pair in zip(response.json['landmark_pairs'],
+                                        TEST_LANDMARK_PAIRS):
+        assert 'source_point' in returned_pair
+        assert numpy.allclose(returned_pair['source_point'],
+                              orig_pair['source_point'])
+        assert 'target_point' in returned_pair
+        assert numpy.allclose(returned_pair['target_point'],
+                              orig_pair['target_point'])
+        assert 'mismatch' in returned_pair
+        assert isinstance(returned_pair['mismatch'], float)
+
+
 @pytest.mark.parametrize(
     ['transformation_type', 'point_count'],
     [
