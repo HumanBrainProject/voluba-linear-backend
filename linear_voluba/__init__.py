@@ -25,8 +25,9 @@ class DefaultConfig:
     # arguments, see
     # https://werkzeug.palletsprojects.com/en/0.15.x/middleware/proxy_fix/
     PROXY_FIX = None
-    # For flask-smorest to generate an OpenAPI spec
-    OPENAPI_VERSION = '3.0.2'
+    # Version of the linear_voluba api (used in the OpenAPI spec)
+    API_VERSION = __version__
+    OPENAPI_VERSION = '3.0.2'  # OpenAPI version to generate
     OPENAPI_URL_PREFIX = '/'
 
 
@@ -111,7 +112,25 @@ def create_app(test_config=None):
         import flask_cors
         flask_cors.CORS(app, origins=app.config['CORS_ORIGINS'])
 
-    smorest_api = flask_smorest.Api(app)
+    smorest_api = flask_smorest.Api(app, spec_kwargs={
+        'servers': [
+            {
+                'url': 'https://voluba-linear-backend.apps.hbp.eu/',
+                'description': 'Production instance running the *master* '
+                               'branch',
+            },
+            {
+                'url': 'https://voluba-linear-backend.apps-dev.hbp.eu/',
+                'description': 'Development instance running the *dev* '
+                               'branch',
+            },
+        ],
+        'info': {
+            'title': 'voluba-linear-backend',
+            'description': 'HTTP backend for estimating linear spatial '
+                           'transformations from a list of point landmarks.',
+        }
+    })
 
     from . import api
     smorest_api.register_blueprint(api.bp)

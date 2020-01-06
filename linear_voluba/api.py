@@ -116,11 +116,90 @@ class LeastSquaresResponseSchema(Schema):
 
 @bp.route('/least-squares')
 class LeastSquaresAPI(flask.views.MethodView):
-    @bp.arguments(LeastSquaresRequestSchema, location='json')
-    @bp.response(LeastSquaresResponseSchema)
+    @bp.arguments(LeastSquaresRequestSchema, location='json',
+                  example={
+                      'transformation_type': 'similarity+reflection',
+                      'landmark_pairs': [
+                          {
+                              'source_point': [0, 0, 0],
+                              'target_point': [10, 10, 10],
+                          },
+                          {
+                              'source_point': [1, 0, 0],
+                              'target_point': [8, 10, 10],
+                          },
+                          {
+                              'source_point': [0, 1, 0],
+                              'target_point': [10, 12, 10],
+                          },
+                      ],
+                  })
+    @bp.response(LeastSquaresResponseSchema,
+                 example={
+                     'transformation_matrix': [
+                         [-2, 0, 0, 10],
+                         [0, 2, 0, 10],
+                         [0, 0, -2, 10],
+                         [0, 0, 0, 1]
+                     ],
+                     'inverse_matrix': [
+                         [-0.5, 0, 0, 5],
+                         [0, 0.5, 0, -5],
+                         [0, 0, -0.5, 5],
+                         [0, 0, 0, 1]
+                     ],
+                     'RMSE': 0,
+                     'landmark_pairs': [
+                         {
+                             'active': True,
+                             'mismatch': 0,
+                             'source_point': [0, 0, 0],
+                             'target_point': [10, 10, 10],
+                         },
+                         {
+                             'active': True,
+                             'mismatch': 0,
+                             'source_point': [1, 0, 0],
+                             'target_point': [8, 10, 10],
+                         },
+                         {
+                             'active': True,
+                             'mismatch': 0.0,
+                             'source_point': [0, 1, 0],
+                             'target_point': [10, 12, 10],
+                         }
+                     ],
+                 })
     def post(self, args):
-        """
-        Calculate an affine transformation matrix from a set of landmarks.
+        """Calculate an affine transformation matrix from a set of landmarks.
+
+        This endpoint calculates an affine transformation matrix that maps a 3D
+        source space to a 3D target space, using a list of corresponding points
+        as input (`landmark_pairs`).
+
+        Several methods are available for the matrix estimation, which are all
+        based on solving a least-squares problem. The available methods are:
+
+        - `rigid+reflection` and `rigid`, which estimate a 6-parameter rigid
+           transformation (3 translation parameters and 3 rotation parameters).
+           The `rigid` variant forces a proper rotation (determinant = +1),
+           whereas `rigid+reflection` allows an inversion (determinant = ±1).
+
+        - `rigid+reflection` and `rigid`, which estimate a 7-parameter
+           siminality transformation (3 translation parameters, 1 scaling
+           factor, and 3 rotation parameters). The `similarity` variant forces
+           a proper rotation (determinant > 0), whereas `similarity+reflection`
+           allows an axis inversion.
+
+        - `affine`, which estimates a full 12-parameter affine transformation.
+          Such a transformation can apply translation, rotation, inversion,
+          anisotropic scaling, and shearing.
+
+        The resulting matrix is returned in the formalism of homogeneous
+        coordinates: it is a 4×4 matrix where the last row is always `[0, 0, 0,
+        1]`. The 3×3 submatrix contains the rotation, scaling, inversion, and
+        shearing parameters, and the 3×1 vector on the last column contains the
+        translation coefficients.
         """
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Received request on /api/least-squares: %s',

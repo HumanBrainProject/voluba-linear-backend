@@ -22,3 +22,7 @@ def test_openapi_spec(app, client):
     response = client.get('/openapi.json')
     assert response.status_code == 200
     assert response.json['openapi'] == app.config['OPENAPI_VERSION']
+    assert 'info' in response.json
+    assert 'title' in response.json['info']
+    assert 'version' in response.json['info']
+    assert 'servers' in response.json
