@@ -31,7 +31,7 @@ class LandmarkPairSchema(Schema):
                                required=True)
     target_point = fields.List(fields.Float, validate=Length(equal=3),
                                required=True)
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, missing=True)
     name = fields.String()
     mismatch = fields.Float(validate=Range(min_inclusive=0.0),
                             dump_only=True, required=True)
