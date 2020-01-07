@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 bp = flask_smorest.Blueprint(
     'api', __name__, url_prefix='/api',
-    description='Legacy API of the Voluba linear backend',
+    description='API of the Voluba linear backend (backward-compatible with '
+                'landmark-reg)',
 )
 
 # Standard codes

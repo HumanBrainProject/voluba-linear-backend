@@ -31,6 +31,10 @@ class DefaultConfig:
     API_VERSION = __version__
     OPENAPI_VERSION = '3.0.2'  # OpenAPI version to generate
     OPENAPI_URL_PREFIX = '/'
+    OPENAPI_REDOC_PATH = 'redoc'
+    OPENAPI_REDOC_VERSION = '2.0.0-rc.20'
+    OPENAPI_SWAGGER_UI_PATH = 'swagger-ui'
+    OPENAPI_SWAGGER_UI_VERSION = '3.24.2'
 
 
 # This function has a magic name which is recognized by flask as a factory for
