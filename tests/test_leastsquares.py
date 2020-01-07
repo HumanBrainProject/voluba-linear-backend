@@ -1,8 +1,7 @@
-# Copyright 2019 CEA
+# Copyright 2019–2020 CEA
 # Copyright 2017 Forschungszentrum Jülich GmbH
 #
 # Author: Yann Leprince <yann.leprince@cea.fr>
-# Author: Yann Leprince <y.leprince@fz-juelich.de>
 
 import json
 import numpy
@@ -208,3 +207,6 @@ def test_underconstrained_affine_in_source_space(point_count):
     with pytest.raises(numpy.linalg.LinAlgError):
         leastsquares.affine_gergely(COPLANAR_POINTS[:point_count],
                                     TRANSFORMED_COPLANAR_POINTS[:point_count])
+
+
+# TODO: test singular matrix

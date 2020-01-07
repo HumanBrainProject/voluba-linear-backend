@@ -14,7 +14,7 @@ The public deployments are managed by OpenShift clusters, the relevant configura
 Documentation
 =============
 
-Coming soon
+The API is documented using the OpenAPI standard (a.k.a. Swagger): see `the ReDoc-generated documentation <https://voluba-linear-backend.apps.hbp.eu/redoc>`_. `A Swagger UI page <https://voluba-linear-backend.apps.hbp.eu/swagger-ui>`_ is also available for trying out the API.
 
 
 Development

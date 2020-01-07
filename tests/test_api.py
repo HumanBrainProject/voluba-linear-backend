@@ -1,4 +1,6 @@
-# Copyright 2019 CEA
+# Copyright 2017–2019 Forschungszentrum Jülich GmbH
+# Copyright 2019–2020 CEA
+#
 # Author: Yann Leprince <yann.leprince@cea.fr>
 
 import numpy
@@ -131,22 +133,20 @@ def test_least_squares_invalid_requests(client):
         'landmark_pairs': TEST_LANDMARK_PAIRS,
         'transformation_type': 'invalid',
     })
-    assert response.status_code == 400
+    assert 400 <= response.status_code < 500
 
     response = client.post('/api/least-squares', json={
         'transformation_type': 'invalid',
     })
-    assert response.status_code == 400
+    assert 400 <= response.status_code < 500
 
     response = client.post('/api/least-squares', json={
         'landmark_pairs': TEST_LANDMARK_PAIRS,
     })
-    assert response.status_code == 400
+    assert 400 <= response.status_code < 500
 
-
-def test_least_squares_other_invalid_requests(client):
     response = client.post('/api/least-squares', json={})
-    assert response.status_code == 400
+    assert 400 <= response.status_code < 500
 
 
 def test_transformation_matrix_field():
@@ -193,3 +193,18 @@ def test_transformation_matrix_field():
                              [0, 1, 0, 0],
                              [0, 0, 1, 0],
                              [1, 2, 3, 4]]})
+
+    # Test the OpenAPI fields supplied as metadata. TODO: test actual
+    # conversion to JSON Schema using apispec.
+    assert schema.fields['val'].metadata['type'] == 'array'
+    assert schema.fields['val'].metadata['minItems'] == 3
+    assert schema.fields['val'].metadata['maxItems'] == 4
+    assert schema.fields['val'].metadata['items'] == {
+        "type": "array",
+        "minItems": 4,
+        "maxItems": 4,
+        "items": {
+            "format": "float",
+            "type": "number"
+        },
+    }
