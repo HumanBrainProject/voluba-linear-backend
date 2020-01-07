@@ -207,3 +207,6 @@ def test_underconstrained_affine_in_source_space(point_count):
     with pytest.raises(numpy.linalg.LinAlgError):
         leastsquares.affine_gergely(COPLANAR_POINTS[:point_count],
                                     TRANSFORMED_COPLANAR_POINTS[:point_count])
+
+
+# TODO: test singular matrix

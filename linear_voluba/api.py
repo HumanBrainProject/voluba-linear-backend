@@ -8,8 +8,9 @@ import math
 
 import flask
 import flask.views
-from flask import json, jsonify, request
+from flask import json, request
 import flask_smorest
+from flask_smorest import abort
 import marshmallow
 from marshmallow import Schema, fields
 from marshmallow.validate import Length, OneOf, Range
@@ -119,6 +120,16 @@ class LeastSquaresResponseSchema(Schema):
                         required=True)
 
 
+class ErrorResponseSchema(Schema):
+    class Meta:
+        unknown = marshmallow.INCLUDE
+        strict = False
+    code = fields.Integer(required=False)
+    status = fields.String(required=False)
+    message = fields.String(required=False)
+    errors = fields.Dict(keys=fields.String(), required=False)
+
+
 @bp.route('/least-squares')
 class LeastSquaresAPI(flask.views.MethodView):
     @bp.arguments(LeastSquaresRequestSchema, location='json',
@@ -139,6 +150,17 @@ class LeastSquaresAPI(flask.views.MethodView):
                           },
                       ],
                   })
+    # The error responses come first, the schemas are only used for
+    # documentation
+    @bp.response(ErrorResponseSchema,
+                 code=400,
+                 example={'message': 'cannot compute least-squares solution '
+                                     '(singular matrix?)'})
+    # Code 422 is raised by webargs for request validation errors
+    @bp.response(ErrorResponseSchema,
+                 code=422, description='Semantically invalid request')
+    # The successful response must be the last response decorator, its schema
+    # is used for serializing the response.
     @bp.response(LeastSquaresResponseSchema,
                  example={
                      'transformation_matrix': [
@@ -205,6 +227,8 @@ class LeastSquaresAPI(flask.views.MethodView):
         1]`. The 3×3 submatrix contains the rotation, scaling, inversion, and
         shearing parameters, and the 3×1 vector on the last column contains the
         translation coefficients.
+
+        **TODO**: document underconstrained/overconstrained cases
         """
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Received request on /api/least-squares: %s',
@@ -253,11 +277,5 @@ class LeastSquaresAPI(flask.views.MethodView):
                 'RMSE': rmse,
             }
         else:
-            # FIXME: this should probably not return a 200 code
-            return {'error': 'cannot compute least-squares solution '
-                             '(singular matrix?)'}, HTTP_200_OK
-
-
-@bp.errorhandler(marshmallow.exceptions.ValidationError)
-def handle_validation_error(exc):
-    return jsonify({'errors': exc.messages}), 400
+            abort(400, message='cannot compute least-squares solution '
+                               '(singular matrix?)')

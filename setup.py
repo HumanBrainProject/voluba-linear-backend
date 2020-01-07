@@ -44,7 +44,7 @@ setuptools.setup(
     install_requires=[
         "Flask ~= 1.0",
         "Flask-Cors",
-        "flask-smorest ~= 0.18.2",
+        "flask-smorest ~= 0.18.3",
         "numpy",
     ],
     python_requires="~= 3.5",

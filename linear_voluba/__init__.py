@@ -131,7 +131,7 @@ def create_app(test_config=None):
             'title': 'voluba-linear-backend',
             'description': 'HTTP backend for estimating linear spatial '
                            'transformations from a list of point landmarks.',
-        }
+        },
     })
 
     from . import api
