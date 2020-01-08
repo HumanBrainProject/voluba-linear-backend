@@ -106,6 +106,39 @@ def test_least_squares_minimal_request(client):
 
 
 @pytest.mark.parametrize(
+    'transformation_type',
+    [
+        'rigid',
+        'similarity',
+        'rigid+reflection',
+        'similarity+reflection',
+        pytest.param('affine',
+                     marks=pytest.mark.skip('affine estimation does not handle'
+                                            'ill-conditioned cases yet')),
+    ]
+)
+def test_least_squares_overconstrained(client, transformation_type):
+    response = client.post('/api/least-squares', json={
+        'landmark_pairs': [
+            {
+                'source_point': [0, 0, 0],
+                'target_point': [0, 0, 0],
+            },
+            {
+                'source_point': [0, 0, 0],
+                'target_point': [1, 0, 0],
+            },
+            {
+                'source_point': [0, 0, 0],
+                'target_point': [0, 1, 0],
+            },
+        ],
+        'transformation_type': transformation_type,
+    })
+    assert response.status_code == 400
+
+
+@pytest.mark.parametrize(
     ['transformation_type', 'point_count'],
     [
         ('rigid', 3),
