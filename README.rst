@@ -1,5 +1,10 @@
 An HTTP backend for estimating linear spatial transformations from a list of point landmarks.
 
+.. image:: https://img.shields.io/swagger/valid/3.0?label=OpenAPI&specUrl=https%3A%2F%2Fvoluba-linear-backend.apps.hbp.eu%2Fopenapi.json
+   :alt: Swagger Validator
+
+This backend is used by `Voluba <https://voluba.apps.hbp.eu/>`_, a web-based tool for interactive registration of 3-dimensional images, dedicated to the alignment of sub-volumes into brain templates.
+
 
 Public deployments
 ==================
