@@ -98,7 +98,7 @@ class TransformationMatrixField(marshmallow.fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
-            array = numpy.asarray(value)
+            array = numpy.asarray(value, dtype=float)
         except Exception as exc:
             raise self.make_error('not_an_array') from exc
         if array.shape not in [(3, 4), (4, 4)]:

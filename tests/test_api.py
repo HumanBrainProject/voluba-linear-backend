@@ -155,7 +155,7 @@ def test_transformation_matrix_field():
     from linear_voluba.api import TransformationMatrixField
 
     class TestSchema(marshmallow.Schema):
-        val = TransformationMatrixField()
+        val = TransformationMatrixField(allow_none=True)
 
     schema = TestSchema()
     mat = schema.load({'val': [[1, 0, 0, 0],
@@ -169,6 +169,8 @@ def test_transformation_matrix_field():
                                [0, 0, 1, 0]]})
     assert isinstance(mat['val'], numpy.ndarray)
     assert numpy.array_equal(mat['val'], numpy.eye(4))
+    mat = schema.load({'val': None})
+    assert mat['val'] is None
 
     serialized = schema.dump({'val': numpy.eye(4)})
     assert serialized == {
@@ -177,13 +179,15 @@ def test_transformation_matrix_field():
                 [0, 0, 1, 0],
                 [0, 0, 0, 1]],
     }
+    serialized = schema.dump({'val': None})
+    assert serialized == {'val': None}
 
     with pytest.raises(ValidationError):
         schema.load({'val': 'string'})
     with pytest.raises(ValidationError):
         schema.load({'val': {'some': 'dict'}})
     with pytest.raises(ValidationError):
-        schema.load({'val': None})
+        schema.load({'val': 0})
     with pytest.raises(ValidationError):
         schema.load({'val': []})
     with pytest.raises(ValidationError):
