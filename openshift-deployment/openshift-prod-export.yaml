@@ -50,9 +50,7 @@ items:
     source:
       git:
         ref: master
-        uri: git@github.com:FZJ-INM1-BDA/voluba-linear-backend.git
-      sourceSecret:
-        name: github-deploy-key
+        uri: https://github.com/HumanBrainProject/voluba-linear-backend.git
       type: Git
     strategy:
       dockerStrategy:

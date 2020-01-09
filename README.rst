@@ -29,7 +29,7 @@ Useful commands for development:
 
 .. code-block:: shell
 
-  git clone https://github.com/FZJ-INM1-BDA/voluba-linear-backend.git
+  git clone https://github.com/HumanBrainProject/voluba-linear-backend.git
 
   # Install in a virtual environment
   cd voluba-linear-backend
