@@ -3,7 +3,12 @@
 #
 # Author: Yann Leprince <yann.leprince@cea.fr>
 
+import logging
+
 import numpy as np
+
+
+logger = logging.getLogger(__name__)
 
 
 def np_matrix_to_json(np_matrix):
@@ -31,7 +36,7 @@ def affine(src, dst):
         src_mat[3 * src_idx + 2][8:11] = src_vec
         src_mat[3 * src_idx + 2][11] = 1
 
-    flat_mat, _, _, _ = np.linalg.lstsq(src_mat, flat_dst, rcond=None)
+    flat_mat, _, _, _ = np.linalg.lstsq(src_mat, flat_dst, rcond=1e-6)
     mat = flat_mat.reshape((3, 4), order="C")
     mat = np.concatenate((mat, [[0, 0, 0, 1]]), axis=0)
     return mat
@@ -48,7 +53,13 @@ def affine_gergely(src, dst):
     return mat
 
 
-# This function is mostly from scikit-image, copyright and licence below:
+class UnderdeterminedProblem(Exception):
+    """Exception raised for an underdetermined problem (ambiguous solution)."""
+    pass
+
+
+# This function is based on code borrowed from scikit-image, copyright and
+# licence below:
 # (https://github.com/scikit-image/scikit-image/blob/8022d048bbcb74ef072e45faf925a4106414308e/skimage/transform/_geometric.py#L72)
 #
 # Copyright (C) 2011, the scikit-image team
@@ -79,7 +90,8 @@ def affine_gergely(src, dst):
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
+def extended_umeyama(src, dst, estimate_scale=False, allow_reflection=False,
+                     rcond=1e-6):
     """Estimate N-D similarity transformation with or without scaling.
     Parameters
     ----------
@@ -91,6 +103,10 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
         Whether to estimate scaling factor.
     allow_reflection : bool
         Whether to allow the resulting matrix to have a negative determinant.
+    rcond : float, optional
+        Cut-off ratio for small singular values. For the purposes of rank
+        determination, singular values are treated as zero if they are smaller
+        than rcond times the largest singular value of a.
     Returns
     -------
     T : (N + 1, N + 1)
@@ -104,6 +120,11 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
 
     num = src.shape[0]
     dim = src.shape[1]
+    if num == 0:
+        raise UnderdeterminedProblem(
+            'underdetermined problem: not enough linearly independent points, '
+            'at least 3 points are needed'
+        )
 
     # Compute mean of src and dst.
     src_mean = src.mean(axis=0)
@@ -120,19 +141,22 @@ def umeyama(src, dst, estimate_scale=False, allow_reflection=False):
 
     U, S, V = np.linalg.svd(A)
 
-    rank = np.count_nonzero(S)
+    logger.debug('singular values = %s', S)
+    largest_singular_value = S[0]
+    rank = np.count_nonzero(S > rcond * largest_singular_value)
+    logger.debug('rank = %s', rank)
 
-    if rank == 0:
-        return np.nan * T
-    elif rank < dim:
-        # In this case the problem is not constrained enough to allow us to
-        # decide if a reflection (mirror transform) should be used. We choose
-        # to return the solution with no reflection.
-        allow_reflection = False
-    # TODO return error or warning if the solution is ambiguous
-    # (rank < dim - 1)
-    #
-    # TODO handle ill-conditioned matrix
+    if rank < dim - 1:
+        raise UnderdeterminedProblem(
+            'underdetermined problem: not enough linearly independent points, '
+            'missing {0} point(s)'.format(dim - 1 - rank)
+        )
+    elif allow_reflection and rank < dim:
+        raise UnderdeterminedProblem(
+            'underdetermined problem: not enough linearly independent points '
+            'to detect if a reflection is present, missing {0} point(s)'
+            .format(dim - rank)
+        )
 
     # Eq. (39).
     # assert ((np.linalg.det(U) * np.linalg.det(V)) * np.linalg.det(A) >= 0

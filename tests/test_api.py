@@ -117,7 +117,7 @@ def test_least_squares_minimal_request(client):
                                             'ill-conditioned cases yet')),
     ]
 )
-def test_least_squares_overconstrained(client, transformation_type):
+def test_least_squares_underconstrained(client, transformation_type):
     response = client.post('/api/least-squares', json={
         'landmark_pairs': [
             {
@@ -125,17 +125,15 @@ def test_least_squares_overconstrained(client, transformation_type):
                 'target_point': [0, 0, 0],
             },
             {
-                'source_point': [0, 0, 0],
+                'source_point': [1, 0, 0],
                 'target_point': [1, 0, 0],
-            },
-            {
-                'source_point': [0, 0, 0],
-                'target_point': [0, 1, 0],
             },
         ],
         'transformation_type': transformation_type,
     })
     assert response.status_code == 400
+    assert 'message' in response.json
+    assert 'under' in response.json['message']
 
 
 @pytest.mark.parametrize(

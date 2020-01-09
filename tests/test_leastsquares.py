@@ -80,53 +80,89 @@ def test_affine_estimation_in_source_space(point_count):
     assert numpy.allclose(test_matrix, estimated_matrix)
 
 
-@pytest.mark.parametrize('estimate_scale', [False, True])
-@pytest.mark.parametrize('allow_reflection', [False, True])
-@pytest.mark.parametrize('point_count', [3, 4, 5])
-def test_umeyama_rigid_estimation(estimate_scale,
-                                  allow_reflection,
-                                  point_count):
+@pytest.mark.parametrize(
+    ['estimate_scale', 'allow_reflection', 'point_count'],
+    [
+        (False, False, 3),
+        (False, False, 4),
+        (True, False, 3),
+        (True, False, 4),
+        (False, True, 4),
+        (False, True, 5),
+        (True, True, 4),
+        (True, True, 5),
+    ]
+)
+def test_extended_umeyama_rigid_estimation(estimate_scale,
+                                           allow_reflection,
+                                           point_count):
     test_matrix = TEST_RIGID_MATRIX
     source_points = SOURCE_POINTS[:point_count]
     transformed_points = apply_transform_to_points(test_matrix, source_points)
-    estimated_matrix = leastsquares.umeyama(source_points, transformed_points,
-                                            estimate_scale=estimate_scale,
-                                            allow_reflection=allow_reflection)
+    estimated_matrix = leastsquares.extended_umeyama(
+        source_points, transformed_points,
+        estimate_scale=estimate_scale,
+        allow_reflection=allow_reflection,
+    )
     assert numpy.allclose(test_matrix, estimated_matrix)
 
 
-@pytest.mark.parametrize('estimate_scale', [False, True])
-@pytest.mark.parametrize('point_count', [4, 5])
-def test_umeyama_rigid_and_mirror_estimation(estimate_scale, point_count):
+@pytest.mark.parametrize(
+    ['estimate_scale', 'allow_reflection', 'point_count'],
+    [
+        (False, True, 4),
+        (False, True, 5),
+        (True, True, 4),
+        (True, True, 5),
+    ]
+)
+def test_extended_umeyama_rigid_and_mirror_estimation(estimate_scale,
+                                                      allow_reflection,
+                                                      point_count):
     test_matrix = TEST_RIGID_AND_MIRROR_MATRIX
     source_points = SOURCE_POINTS[:point_count]
     transformed_points = apply_transform_to_points(test_matrix, source_points)
-    estimated_matrix = leastsquares.umeyama(source_points, transformed_points,
-                                            estimate_scale=estimate_scale,
-                                            allow_reflection=True)
+    estimated_matrix = leastsquares.extended_umeyama(
+        source_points, transformed_points,
+        estimate_scale=estimate_scale,
+        allow_reflection=allow_reflection,
+    )
     assert numpy.allclose(test_matrix, estimated_matrix)
 
 
-@pytest.mark.parametrize('allow_reflection', [False, True])
-@pytest.mark.parametrize('point_count', [3, 4, 5])
-def test_umeyama_similarity_estimation(allow_reflection, point_count):
+@pytest.mark.parametrize(
+    ['estimate_scale', 'allow_reflection', 'point_count'],
+    [
+        (True, False, 3),
+        (True, False, 4),
+        (True, True, 4),
+        (True, True, 5),
+    ]
+)
+def test_extended_umeyama_similarity_estimation(estimate_scale,
+                                                allow_reflection,
+                                                point_count):
     test_matrix = TEST_SIMILARITY_MATRIX
     source_points = SOURCE_POINTS[:point_count]
     transformed_points = apply_transform_to_points(test_matrix, source_points)
-    estimated_matrix = leastsquares.umeyama(source_points, transformed_points,
-                                            estimate_scale=True,
-                                            allow_reflection=allow_reflection)
+    estimated_matrix = leastsquares.extended_umeyama(
+        source_points, transformed_points,
+        estimate_scale=estimate_scale,
+        allow_reflection=allow_reflection,
+    )
     assert numpy.allclose(test_matrix, estimated_matrix)
 
 
 @pytest.mark.parametrize('point_count', [4, 5])
-def test_umeyama_similarity_and_mirror_estimation(point_count):
+def test_extended_umeyama_similarity_and_mirror_estimation(point_count):
     test_matrix = TEST_SIMILARITY_AND_MIRROR_MATRIX
     source_points = SOURCE_POINTS[:point_count]
     transformed_points = apply_transform_to_points(test_matrix, source_points)
-    estimated_matrix = leastsquares.umeyama(source_points, transformed_points,
-                                            estimate_scale=True,
-                                            allow_reflection=True)
+    estimated_matrix = leastsquares.extended_umeyama(
+        source_points, transformed_points,
+        estimate_scale=True,
+        allow_reflection=True,
+    )
     assert numpy.allclose(test_matrix, estimated_matrix)
 
 
@@ -161,8 +197,8 @@ def test_per_landmark_mismatch():
 COPLANAR_POINTS = numpy.array([
     [0, 0, 0],
     [1, 0, 0],
+    [2, 0, 0],
     [0, 1, 0],
-    [0.5, 0.5, 0],
 ])
 
 TRANSFORMED_COPLANAR_POINTS = apply_transform_to_points(
@@ -171,11 +207,11 @@ TRANSFORMED_COPLANAR_POINTS = apply_transform_to_points(
 )
 
 
-@pytest.mark.skip('FIXME: the modified Umeyama method does not detect '
-                  'underconstrained cases yet')
 @pytest.mark.parametrize(
     ['estimate_scale', 'allow_reflection', 'point_count'],
     [
+        (False, False, 0),
+        (False, False, 1),
         (False, False, 2),
         (False, False, 3),
         (True, False, 2),
@@ -186,20 +222,60 @@ TRANSFORMED_COPLANAR_POINTS = apply_transform_to_points(
         (True, True, 4),
     ]
 )
-def test_underconstrained_umeyama(estimate_scale,
-                                  allow_reflection,
-                                  point_count):
-    leastsquares.umeyama(COPLANAR_POINTS[:point_count],
-                         TRANSFORMED_COPLANAR_POINTS[:point_count],
-                         estimate_scale=estimate_scale,
-                         allow_reflection=allow_reflection)
+def test_underconstrained_extended_umeyama(estimate_scale,
+                                           allow_reflection,
+                                           point_count):
+    with pytest.raises(leastsquares.UnderdeterminedProblem):
+        leastsquares.extended_umeyama(
+            COPLANAR_POINTS[:point_count],
+            TRANSFORMED_COPLANAR_POINTS[:point_count],
+            estimate_scale=estimate_scale,
+            allow_reflection=allow_reflection,
+        )
 
-@pytest.mark.skip('FIXME: the affine method does not detect underconstained '
-                  'cases yet')
-@pytest.mark.parametrize('point_count', [3, 4])
+
+OVERCONSTRAINED_SOURCE_POINTS = numpy.array([
+    [0, 0, 0],
+    [0, 0, 0],
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+])
+OVERCONSTRAINED_TARGET_POINTS = numpy.array([
+    [0, 0, 0],
+    [1, 0, 0],
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+])
+
+
+@pytest.mark.parametrize('estimate_scale', [False, True])
+@pytest.mark.parametrize('allow_reflection', [False, True])
+def test_overconstrained_extended_umeyama(estimate_scale,
+                                          allow_reflection):
+    # The modified Umeyama method does not detect overconstrained cases
+    leastsquares.extended_umeyama(
+        OVERCONSTRAINED_SOURCE_POINTS,
+        OVERCONSTRAINED_TARGET_POINTS,
+        estimate_scale=estimate_scale,
+        allow_reflection=allow_reflection,
+    )
+
+
+@pytest.mark.skip('FIXME: underconstrained not detected by affine yet')
+@pytest.mark.parametrize('point_count', list(range(5)))
 def test_underconstrained_affine(point_count):
-    leastsquares.affine(COPLANAR_POINTS[:point_count],
-                        TRANSFORMED_COPLANAR_POINTS[:point_count])
+    with pytest.raises(leastsquares.UnderdeterminedProblem):
+        leastsquares.affine(COPLANAR_POINTS[:point_count],
+                            TRANSFORMED_COPLANAR_POINTS[:point_count])
+
+
+def test_overconstrained_affine():
+    leastsquares.affine(
+        OVERCONSTRAINED_SOURCE_POINTS,
+        OVERCONSTRAINED_TARGET_POINTS,
+    )
 
 
 @pytest.mark.parametrize('point_count', [3, 4])
@@ -207,6 +283,3 @@ def test_underconstrained_affine_in_source_space(point_count):
     with pytest.raises(numpy.linalg.LinAlgError):
         leastsquares.affine_gergely(COPLANAR_POINTS[:point_count],
                                     TRANSFORMED_COPLANAR_POINTS[:point_count])
-
-
-# TODO: test singular matrix

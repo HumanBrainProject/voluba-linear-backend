@@ -229,7 +229,18 @@ class LeastSquaresAPI(flask.views.MethodView):
         shearing parameters, and the 3×1 vector on the last column contains the
         translation coefficients.
 
-        **TODO**: document underconstrained/overconstrained cases
+        **TODO**: document the response
+
+        Each method needs a minimal number of linearly independent
+        (non-collinear and non-coplanar) landmark pairs, below this number the
+        endpoint will return a 400 code and include an informative error
+        message in the `message` field of the response:
+
+        - 3 points are needed for `rigid` and `similarity`,
+
+        - 4 points are needed for `rigid+reflection`, `similarity+reflection`,
+          and `affine`.
+
         """
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Received request on /api/least-squares: %s',
@@ -243,24 +254,31 @@ class LeastSquaresAPI(flask.views.MethodView):
                                   for pair in landmark_pairs
                                   if pair['active']])
 
-        if transformation_type == 'rigid':
-            mat = leastsquares.umeyama(source_points, target_points,
-                                       estimate_scale=False,
-                                       allow_reflection=False)
-        elif transformation_type == 'rigid+reflection':
-            mat = leastsquares.umeyama(source_points, target_points,
-                                       estimate_scale=False,
-                                       allow_reflection=True)
-        elif transformation_type == 'similarity':
-            mat = leastsquares.umeyama(source_points, target_points,
-                                       estimate_scale=True,
-                                       allow_reflection=False)
-        elif transformation_type == 'similarity+reflection':
-            mat = leastsquares.umeyama(source_points, target_points,
-                                       estimate_scale=True,
-                                       allow_reflection=True)
-        elif transformation_type == 'affine':
-            mat = leastsquares.affine(source_points, target_points)
+        try:
+            if transformation_type == 'rigid':
+                mat = leastsquares.extended_umeyama(
+                    source_points, target_points,
+                    estimate_scale=False, allow_reflection=False
+                )
+            elif transformation_type == 'rigid+reflection':
+                mat = leastsquares.extended_umeyama(
+                    source_points, target_points,
+                    estimate_scale=False, allow_reflection=True
+                )
+            elif transformation_type == 'similarity':
+                mat = leastsquares.extended_umeyama(
+                    source_points, target_points,
+                    estimate_scale=True, allow_reflection=False
+                )
+            elif transformation_type == 'similarity+reflection':
+                mat = leastsquares.extended_umeyama(
+                    source_points, target_points,
+                    estimate_scale=True, allow_reflection=True
+                )
+            elif transformation_type == 'affine':
+                mat = leastsquares.affine(source_points, target_points)
+        except leastsquares.UnderdeterminedProblem as exc:
+            abort(400, message=str(exc))
 
         inv_mat = np.linalg.inv(mat)
 
@@ -270,13 +288,10 @@ class LeastSquaresAPI(flask.views.MethodView):
             pair['mismatch'] = mismatch
         rmse = math.sqrt(np.mean(mismatches ** 2))
 
-        if np.all(np.isfinite(mat)) and np.all(np.isfinite(inv_mat)):
-            return {
-                'transformation_matrix': mat,
-                'inverse_matrix': inv_mat,
-                'landmark_pairs': landmark_pairs,
-                'RMSE': rmse,
-            }
-        else:
-            abort(400, message='cannot compute least-squares solution '
-                               '(singular matrix?)')
+        assert np.all(np.isfinite(mat)) and np.all(np.isfinite(inv_mat))
+        return {
+            'transformation_matrix': mat,
+            'inverse_matrix': inv_mat,
+            'landmark_pairs': landmark_pairs,
+            'RMSE': rmse,
+        }
