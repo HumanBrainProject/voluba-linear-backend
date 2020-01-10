@@ -64,8 +64,17 @@ Contributing
 This repository uses `pre-commit`_ to ensure that all committed code follows minimal quality standards. Please install it and configure it to run as a pre-commit hook in your local repository (see above).
 
 
+Licence
+=======
+
+This project is released under the Apache Licence, version 2.0. See `<LICENCE.txt/>`_.
+
+Portions of the code are based on code from the `scikit-image`_ library, Copyright (C) 2011, the scikit-image team, under the 3-clause-BSD licence.
+
+
 .. |uptime-prod| image:: https://img.shields.io/uptimerobot/ratio/7/m783970711-bbe034c363d690e3163c1b6c?style=flat-square
    :alt: Weekly uptime ratio of the production instance
 .. |uptime-dev| image:: https://img.shields.io/uptimerobot/ratio/7/m783970712-d728e3948939d25be7ccaa9a?style=flat-square
    :alt: Weekly uptime ratio of the development instance
 .. _pre-commit: https://pre-commit.com/
+.. _scikit-image: https://scikit-image.org/

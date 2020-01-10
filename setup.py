@@ -62,4 +62,17 @@ setuptools.setup(
     },
     setup_requires=pytest_runner,
     tests_require=tests_require,
+    classifiers=[
+        "Environment :: Web Environment",
+        "Framework :: Flask",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    ],
 )
