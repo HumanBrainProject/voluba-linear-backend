@@ -1,5 +1,13 @@
 An HTTP backend for estimating linear spatial transformations from a list of point landmarks.
 
+.. image:: https://api.travis-ci.com/HumanBrainProject/voluba-linear-backend.svg?branch=master
+   :target: https://travis-ci.com/HumanBrainProject/voluba-linear-backend
+   :alt: Travis Build Status
+
+.. image:: https://codecov.io/gh/HumanBrainProject/voluba-linear-backend/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/HumanBrainProject/voluba-linear-backend
+   :alt: Coverage Status
+
 .. image:: https://img.shields.io/swagger/valid/3.0?label=OpenAPI&specUrl=https%3A%2F%2Fvoluba-linear-backend.apps.hbp.eu%2Fopenapi.json
    :alt: Swagger Validator
 
@@ -56,8 +64,8 @@ Contributing
 This repository uses `pre-commit`_ to ensure that all committed code follows minimal quality standards. Please install it and configure it to run as a pre-commit hook in your local repository (see above).
 
 
-.. |uptime-prod| image:: https://img.shields.io/uptimerobot/ratio/7/m783970711-bbe034c363d690e3163c1b6c
+.. |uptime-prod| image:: https://img.shields.io/uptimerobot/ratio/7/m783970711-bbe034c363d690e3163c1b6c?style=flat-square
    :alt: Weekly uptime ratio of the production instance
-.. |uptime-dev| image:: https://img.shields.io/uptimerobot/ratio/7/m783970712-d728e3948939d25be7ccaa9a
+.. |uptime-dev| image:: https://img.shields.io/uptimerobot/ratio/7/m783970712-d728e3948939d25be7ccaa9a?style=flat-square
    :alt: Weekly uptime ratio of the development instance
 .. _pre-commit: https://pre-commit.com/
