@@ -67,7 +67,7 @@ This repository uses `pre-commit`_ to ensure that all committed code follows min
 Licence
 =======
 
-This project is released under the Apache Licence, version 2.0. See `<LICENCE.txt/>`_.
+This project is released under the Apache Licence, version 2.0. See `<LICENCE.txt>`_.
 
 Portions of the code are based on code from the `scikit-image`_ library, Copyright (C) 2011, the scikit-image team, under the 3-clause-BSD licence.
 
