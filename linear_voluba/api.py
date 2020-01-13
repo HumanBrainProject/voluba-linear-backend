@@ -40,12 +40,10 @@ bp = flask_smorest.Blueprint(
                 'landmark-reg)',
 )
 
-# Standard codes
-HTTP_200_OK = 200
-HTTP_501_NOT_IMPLEMENTED = 501
-
 
 class LandmarkPairSchema(Schema):
+    class Meta:
+        ordered = True
     source_point = fields.List(fields.Float, validate=Length(equal=3),
                                required=True)
     target_point = fields.List(fields.Float, validate=Length(equal=3),
@@ -58,6 +56,7 @@ class LandmarkPairSchema(Schema):
 
 class LeastSquaresRequestSchema(Schema):
     class Meta:
+        ordered = True
         unknown = marshmallow.EXCLUDE
     transformation_type = fields.String(
         validate=OneOf([
@@ -123,6 +122,8 @@ class TransformationMatrixField(marshmallow.fields.Field):
 
 
 class LeastSquaresResponseSchema(Schema):
+    class Meta:
+        ordered = True
     transformation_matrix = TransformationMatrixField(required=True)
     inverse_matrix = TransformationMatrixField(required=True)
     landmark_pairs = fields.Nested(
@@ -135,6 +136,7 @@ class LeastSquaresResponseSchema(Schema):
 
 class ErrorResponseSchema(Schema):
     class Meta:
+        ordered = True
         unknown = marshmallow.INCLUDE
         strict = False
     code = fields.Integer(required=False)
