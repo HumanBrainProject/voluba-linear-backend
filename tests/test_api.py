@@ -15,6 +15,8 @@
 # See the Licence for the specific language governing permissions and
 # limitations under the Licence.
 
+import logging
+
 import numpy
 import pytest
 
@@ -165,6 +167,18 @@ def test_least_squares_transformation_types(client,
         'landmark_pairs': TEST_LANDMARK_PAIRS[:point_count],
         'transformation_type': transformation_type,
     })
+    assert response.status_code == 200
+
+
+def test_least_squares_debug_log(client, caplog):
+    caplog.set_level(logging.DEBUG)
+    response = client.post('/api/least-squares', json={
+        'landmark_pairs': TEST_LANDMARK_PAIRS,
+        'transformation_type': 'affine',
+    })
+    assert 'least-squares' in caplog.text
+    assert 'landmark_pairs' in caplog.text
+    assert 'affine' in caplog.text
     assert response.status_code == 200
 
 
