@@ -28,6 +28,12 @@ import flask_smorest
 # parsed with a regular expression, so keep the syntax simple).
 __version__ = '0.2.0.dev0'
 
+SOURCE_URL = 'https://github.com/HumanBrainProject/voluba-linear-backend'
+"""URL that holds the source code of the backend.
+
+This should be changed to point to the code of any modified version.
+"""
+
 
 class DefaultConfig:
     # Passed as the 'origins' parameter to flask_cors.CORS, see
@@ -110,6 +116,14 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    @app.route("/")
+    def root():
+        return flask.redirect(SOURCE_URL)
+
+    @app.route("/source")
+    def source():
+        return flask.redirect(SOURCE_URL)
 
     # Return success if the app is ready to serve requests. Used in OpenShift
     # health checks.
