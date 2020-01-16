@@ -44,14 +44,29 @@ bp = flask_smorest.Blueprint(
 class LandmarkPairSchema(Schema):
     class Meta:
         ordered = True
-    source_point = fields.List(fields.Float, validate=Length(equal=3),
-                               required=True)
-    target_point = fields.List(fields.Float, validate=Length(equal=3),
-                               required=True)
-    active = fields.Boolean(default=True, missing=True)
-    name = fields.String()
-    mismatch = fields.Float(validate=Range(min_inclusive=0.0),
-                            dump_only=True, required=True)
+    source_point = fields.List(
+        fields.Float, validate=Length(equal=3), required=True,
+        description='Coordinates of the point in source space.',
+    )
+    target_point = fields.List(
+        fields.Float, validate=Length(equal=3), required=True,
+        description='Coordinates of the point in target space.',
+    )
+    active = fields.Boolean(
+        default=True, missing=True,
+        description='Landmark pairs for which active is false are not used '
+                    'for the estimation of the transformation matrix.',
+    )
+    name = fields.String(
+        required=False,
+        description='Optional identifier of the landmark pair.',
+    )
+    mismatch = fields.Float(
+        validate=Range(min_inclusive=0.0), dump_only=True, required=True,
+        description='Euclidean distance, in the target space, between the '
+                    '`target_point` and the `source_point` transformed by '
+                    '`transformation_matrix`',
+    )
 
 
 class LeastSquaresRequestSchema(Schema):
@@ -67,10 +82,13 @@ class LeastSquaresRequestSchema(Schema):
             'affine',
         ]),
         required=True,
+        description='Method to use for estimating the transformation matrix '
+                    '(see the documentation of `/api/least-squares`).',
     )
     landmark_pairs = fields.Nested(
         LandmarkPairSchema,
         many=True, unknown=marshmallow.EXCLUDE, required=True,
+        description='List of landmark pairs to use in the estimation.',
     )
 
 
@@ -124,14 +142,28 @@ class TransformationMatrixField(marshmallow.fields.Field):
 class LeastSquaresResponseSchema(Schema):
     class Meta:
         ordered = True
-    transformation_matrix = TransformationMatrixField(required=True)
-    inverse_matrix = TransformationMatrixField(required=True)
+    transformation_matrix = TransformationMatrixField(
+        required=True,
+        description='Transformation matrix from source space to target space.',
+    )
+    inverse_matrix = TransformationMatrixField(
+        required=True,
+        description='Transformation matrix from target space to source space.',
+    )
     landmark_pairs = fields.Nested(
         LandmarkPairSchema,
         many=True, unknown=marshmallow.RAISE, required=True,
+        description='The list of landmark pairs that were sent in the '
+                    'request (including pairs for which `active` is false). '
+                    'Any unknown fields that were sent in the request are '
+                    'omitted, and the `mismatch` field is added.',
     )
-    RMSE = fields.Float(validate=Range(min_inclusive=0.0),
-                        required=True)
+    RMSE = fields.Float(
+        validate=Range(min_inclusive=0.0), required=True,
+        description='RMSE (root mean square error) is the root mean square '
+                    'average of all `mismatch` values (including those for '
+                    'which `active` is false).',
+    )
 
 
 class ErrorResponseSchema(Schema):
@@ -219,6 +251,14 @@ class LeastSquaresAPI(flask.views.MethodView):
         source space to a 3D target space, using a list of corresponding points
         as input (`landmark_pairs`).
 
+        The resulting matrix is returned in the formalism of homogeneous
+        coordinates: it is a 4×4 matrix where the last row is always `[0, 0, 0,
+        1]`. The 3×3 submatrix contains the rotation, scaling, inversion, and
+        shearing parameters, and the 3×1 vector on the last column contains the
+        translation coefficients.
+
+        ### Methods
+
         Several methods are available for the matrix estimation, which are all
         based on solving a least-squares problem. The available methods are:
 
@@ -237,21 +277,11 @@ class LeastSquaresAPI(flask.views.MethodView):
           Such a transformation can apply translation, rotation, inversion,
           anisotropic scaling, and shearing.
 
-        The resulting matrix is returned in the formalism of homogeneous
-        coordinates: it is a 4×4 matrix where the last row is always `[0, 0, 0,
-        1]`. The 3×3 submatrix contains the rotation, scaling, inversion, and
-        shearing parameters, and the 3×1 vector on the last column contains the
-        translation coefficients.
-
-        **TODO**: document the response
-
         Each method needs a minimal number of linearly independent
         (non-collinear and non-coplanar) landmark pairs, below this number the
         endpoint will return a 400 code and include an informative error
         message in the `message` field of the response:
-
         - 3 points are needed for `rigid` and `similarity`,
-
         - 4 points are needed for `rigid+reflection`, `similarity+reflection`,
           and `affine`.
 
