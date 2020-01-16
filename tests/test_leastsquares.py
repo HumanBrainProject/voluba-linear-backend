@@ -221,18 +221,10 @@ TRANSFORMED_COPLANAR_POINTS = apply_transform_to_points(
 
 @pytest.mark.parametrize(
     ['estimate_scale', 'allow_reflection', 'point_count'],
-    [
-        (False, False, 0),
-        (False, False, 1),
-        (False, False, 2),
-        (False, False, 3),
-        (True, False, 2),
-        (True, False, 3),
-        (False, True, 3),
-        (False, True, 4),
-        (True, True, 3),
-        (True, True, 4),
-    ]
+    [(False, False, i) for i in range(4)]
+    + [(True, False, i) for i in range(4)]
+    + [(False, True, i) for i in range(5)]
+    + [(True, True, i) for i in range(5)]
 )
 def test_underconstrained_extended_umeyama(estimate_scale,
                                            allow_reflection,
@@ -253,7 +245,9 @@ def test_underconstrained_affine(point_count):
                             TRANSFORMED_COPLANAR_POINTS[:point_count])
 
 
-@pytest.mark.xfail(strict=True, raises=numpy.linalg.LinAlgError)
+@pytest.mark.xfail(strict=True, raises=numpy.linalg.LinAlgError,
+                   reason='unused function, detection of underconstrained '
+                   'problems is not implemented')
 @pytest.mark.parametrize('point_count', list(range(5)))
 def test_underconstrained_affine_in_source_space(point_count):
     with pytest.raises(leastsquares.UnderdeterminedProblem):
@@ -293,6 +287,13 @@ def test_overconstrained_extended_umeyama(estimate_scale,
 def test_overconstrained_affine():
     # The affine least-squares method does not detect overconstrained cases
     leastsquares.affine(
+        OVERCONSTRAINED_SOURCE_POINTS,
+        OVERCONSTRAINED_TARGET_POINTS,
+    )
+
+
+def test_overconstrained_affine_in_source_space():
+    leastsquares.affine_gergely(
         OVERCONSTRAINED_SOURCE_POINTS,
         OVERCONSTRAINED_TARGET_POINTS,
     )
