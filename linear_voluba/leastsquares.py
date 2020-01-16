@@ -35,8 +35,13 @@ def per_landmark_mismatch(src, dst, matrix):
     return distances
 
 
-def affine(src, dst):
-    """Estimate the best affine matrix by least-squares in target space"""
+def affine(src, dst, rcond=1e-6):
+    """Estimate the best affine matrix by least-squares in target space.
+
+    The implementation is specific to 3-dimensional source and target spaces,
+    but could be generalized easily.
+    """
+    assert src.shape[1] == dst.shape[1] == 3
     flat_dst = dst.flatten(order="C")  # order: dst1x, dst1y, dst1z, dst2x...
 
     src_mat = np.zeros((len(flat_dst), 12))
@@ -48,7 +53,12 @@ def affine(src, dst):
         src_mat[3 * src_idx + 2][8:11] = src_vec
         src_mat[3 * src_idx + 2][11] = 1
 
-    flat_mat, _, _, _ = np.linalg.lstsq(src_mat, flat_dst, rcond=1e-6)
+    flat_mat, _, rank, _ = np.linalg.lstsq(src_mat, flat_dst, rcond=rcond)
+    if rank < 12:
+        raise UnderdeterminedProblem(
+            'underdetermined problem: not enough linearly independent points, '
+            'missing {0} point(s)'.format((12 - rank + 2) // 3)
+        )
     mat = flat_mat.reshape((3, 4), order="C")
     mat = np.concatenate((mat, [[0, 0, 0, 1]]), axis=0)
     return mat
