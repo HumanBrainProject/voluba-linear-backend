@@ -120,7 +120,7 @@ def create_app(test_config=None):
 
     @app.route("/")
     def root():
-        return flask.redirect(SOURCE_URL)
+        return flask.redirect('/redoc')
 
     @app.route("/source")
     def source():
@@ -169,8 +169,16 @@ def create_app(test_config=None):
         ],
         'info': {
             'title': 'voluba-linear-backend',
-            'description': 'HTTP backend for estimating linear spatial '
-                           'transformations from a list of point landmarks.',
+            'description': '''\
+An HTTP backend for estimating linear spatial transformations from a list of
+point landmarks.
+
+This backend is used by [Voluba](https://voluba.apps.hbp.eu/), a web-based tool
+for interactive registration of 3-dimensional images, dedicated to the
+alignment of sub-volumes into brain templates.
+
+For more information, see the **source code repository:** <{SOURCE_URL}>.
+'''.format(SOURCE_URL=SOURCE_URL),
             'license': {
                 'name': 'Apache 2.0',
                 'url': 'https://www.apache.org/licenses/LICENSE-2.0.html',
