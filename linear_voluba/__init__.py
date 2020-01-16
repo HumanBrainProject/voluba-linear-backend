@@ -171,10 +171,10 @@ def create_app(test_config=None):
             'title': 'voluba-linear-backend',
             'description': 'HTTP backend for estimating linear spatial '
                            'transformations from a list of point landmarks.',
-        },
-        'license': {
-            'name': 'Apache 2.0',
-            'url': 'https://www.apache.org/licenses/LICENSE-2.0.html',
+            'license': {
+                'name': 'Apache 2.0',
+                'url': 'https://www.apache.org/licenses/LICENSE-2.0.html',
+            },
         },
     })
 
