@@ -195,6 +195,10 @@ class LeastSquaresAPI(flask.views.MethodView):
                               'source_point': [0, 1, 0],
                               'target_point': [10, 12, 10],
                           },
+                          {
+                              'source_point': [0, 0, -1],
+                              'target_point': [10, 10, 12],
+                          },
                       ],
                   })
     # The error responses come first, the schemas are only used for
@@ -241,7 +245,13 @@ class LeastSquaresAPI(flask.views.MethodView):
                              'mismatch': 0.0,
                              'source_point': [0, 1, 0],
                              'target_point': [10, 12, 10],
-                         }
+                         },
+                         {
+                             'active': True,
+                             'mismatch': 0.0,
+                             'source_point': [0, 0, -1],
+                             'target_point': [10, 10, 12],
+                         },
                      ],
                  })
     def post(self, args):
