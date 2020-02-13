@@ -6,12 +6,10 @@ items:
     annotations:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: 2020-01-29T13:25:14Z
-    generation: 1
     labels:
       app: voluba-linear-backend
     name: voluba-linear-backend
     namespace: voluba-linear-backend
-    resourceVersion: "4740872"
     selfLink: /apis/image.openshift.io/v1/namespaces/voluba-linear-backend/imagestreams/voluba-linear-backend
     uid: c88facd2-429a-11ea-89e4-fa163e061b5f
   spec:
@@ -27,7 +25,6 @@ items:
       app: voluba-linear-backend
     name: voluba-linear-backend
     namespace: voluba-linear-backend
-    resourceVersion: "4739595"
     selfLink: /apis/build.openshift.io/v1/namespaces/voluba-linear-backend/buildconfigs/voluba-linear-backend
     uid: c89a5a9e-429a-11ea-89e4-fa163e061b5f
   spec:
@@ -60,11 +57,9 @@ items:
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers:
-    - generic:
-        secret: 53e40f6165a24f2f
-      type: Generic
     - github:
-        secret: fa13de5b296ad8be
+        secretReference:
+          name: github-webhook-secret
       type: GitHub
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
@@ -72,12 +67,10 @@ items:
     annotations:
       openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: 2020-01-29T13:25:14Z
-    generation: 2
     labels:
       app: voluba-linear-backend
     name: voluba-linear-backend
     namespace: voluba-linear-backend
-    resourceVersion: "4741341"
     selfLink: /apis/apps.openshift.io/v1/namespaces/voluba-linear-backend/deploymentconfigs/voluba-linear-backend
     uid: c8a23770-429a-11ea-89e4-fa163e061b5f
   spec:
@@ -106,7 +99,7 @@ items:
         - env:
           - name: INSTANCE_PATH
             value: /instance
-          image: docker-registry.default.svc:5000/voluba-linear-backend/voluba-linear-backend@sha256:b2d6ce1d18ef6a4ac09ba21eca4f3d8e19e2def04670d21ac4638f3854afc034
+          image: docker-registry.default.svc:5000/voluba-linear-backend/voluba-linear-backend
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 3
@@ -157,7 +150,7 @@ items:
           kind: ImageStreamTag
           name: voluba-linear-backend:latest
           namespace: voluba-linear-backend
-        lastTriggeredImage: docker-registry.default.svc:5000/voluba-linear-backend/voluba-linear-backend@sha256:b2d6ce1d18ef6a4ac09ba21eca4f3d8e19e2def04670d21ac4638f3854afc034
+        lastTriggeredImage: docker-registry.default.svc:5000/voluba-linear-backend/voluba-linear-backend
       type: ImageChange
     - type: ConfigChange
 - apiVersion: v1
@@ -170,7 +163,6 @@ items:
       app: voluba-linear-backend
     name: voluba-linear-backend
     namespace: voluba-linear-backend
-    resourceVersion: "4738570"
     selfLink: /api/v1/namespaces/voluba-linear-backend/services/voluba-linear-backend
     uid: c8ac1a96-429a-11ea-89e4-fa163e061b5f
   spec:
@@ -194,7 +186,6 @@ items:
       app: voluba-linear-backend
     name: voluba-linear-backend
     namespace: voluba-linear-backend
-    resourceVersion: "4738574"
     selfLink: /apis/route.openshift.io/v1/namespaces/voluba-linear-backend/routes/voluba-linear-backend
     uid: c8b4ba98-429a-11ea-89e4-fa163e061b5f
   spec:
@@ -224,7 +215,6 @@ items:
     creationTimestamp: 2020-01-29T13:25:14Z
     name: instance-dir
     namespace: voluba-linear-backend
-    resourceVersion: "4738575"
     selfLink: /api/v1/namespaces/voluba-linear-backend/configmaps/instance-dir
     uid: c8bfa735-429a-11ea-89e4-fa163e061b5f
 kind: List
