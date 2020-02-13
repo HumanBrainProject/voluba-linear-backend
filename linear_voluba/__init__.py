@@ -15,6 +15,7 @@
 # See the Licence for the specific language governing permissions and
 # limitations under the Licence.
 
+import datetime
 import logging
 import logging.config
 import os
@@ -39,6 +40,9 @@ class DefaultConfig:
     # Passed as the 'origins' parameter to flask_cors.CORS, see
     # https://flask-cors.readthedocs.io/en/latest/api.html#flask_cors.CORS
     CORS_ORIGINS = '*'
+    # Duration that the browser is allowed to cache the results of a CORS
+    # preflight request.
+    CORS_MAX_AGE = datetime.timedelta(minutes=10)
     # Set to True to enable the /echo endpoint (for debugging)
     ENABLE_ECHO = False
     # Set up werkzeug.middleware.proxy_fix.ProxyFix with the provided keyword
@@ -143,7 +147,8 @@ def create_app(test_config=None):
 
     if app.config.get('CORS_ORIGINS'):
         import flask_cors
-        flask_cors.CORS(app, origins=app.config['CORS_ORIGINS'])
+        flask_cors.CORS(app, origins=app.config['CORS_ORIGINS'],
+                        max_age=app.config['CORS_MAX_AGE'])
 
     if app.config['ENV'] == 'development':
         local_server = [
