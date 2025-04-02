@@ -1,3 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: voluba-lbe-ebrains-cert
+spec:
+  secretName: voluba-lbe-ebrains-secret
+  renewBefore: 120h 
+  commonName: voluba-linear-backend.apps.ebrains.eu
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+  - server auth
+  dnsNames:
+  # (CHANGE ME! same as `commonName`)
+  - voluba-linear-backend.apps.ebrains.eu
+  issuerRef:
+    name: letsencrypt-production-issuer-1
+    kind: ClusterIssuer 
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -5,8 +27,19 @@ metadata:
     name: voluba-old-lbe-hostname-ingress
   name: voluba-old-lbe-hostname-ingress
 spec:
+  ingressClassName: nginx
   rules:
   - host: voluba-linear-backend.apps.hbp.eu
+    http:
+      paths:
+      - backend:
+          service:
+            name: voluba-backend
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+  - host: voluba-linear-backend.apps.ebrains.eu
     http:
       paths:
       - backend:
@@ -20,3 +53,6 @@ spec:
   - hosts:
     - voluba-linear-backend.apps.hbp.eu
     secretName: voluba-lbe-old-hostname-secret
+  - hosts:
+    - voluba-linear-backend.apps.ebrains.eu
+    secretName: voluba-lbe-ebrains-secret
