@@ -20,8 +20,6 @@ Public deployments
 
 A production deployment (following the ``master`` branch) is deployed on https://voluba-linear-backend.apps.hbp.eu. |uptime-prod|
 
-The ``dev`` branch is deployed on https://voluba-linear-backend.apps-dev.hbp.eu. |uptime-dev|
-
 The public deployments are managed by OpenShift clusters, the relevant configuration is described in `<openshift-deployment/>`_.
 
 
@@ -75,7 +73,5 @@ Portions of the code are based on code from the `scikit-image`_ library, Copyrig
 
 .. |uptime-prod| image:: https://img.shields.io/uptimerobot/ratio/7/m783970711-bbe034c363d690e3163c1b6c?style=flat-square
    :alt: Weekly uptime ratio of the production instance
-.. |uptime-dev| image:: https://img.shields.io/uptimerobot/ratio/7/m783970712-d728e3948939d25be7ccaa9a?style=flat-square
-   :alt: Weekly uptime ratio of the development instance
 .. _pre-commit: https://pre-commit.com/
 .. _scikit-image: https://scikit-image.org/
